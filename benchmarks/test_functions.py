@@ -56,8 +56,9 @@ class TestBenchFunctions(TestBenchBase):
     @pytest.mark.parametrize(
         "table",
         [
-            "collections_simple",
-            "collections_complex",
+            "polygons_simple",
+            "polygons_complex",
+            "points_simple",
         ],
     )
     def test_st_buffer(self, benchmark, eng, table):
@@ -104,8 +105,8 @@ class TestBenchFunctions(TestBenchBase):
     @pytest.mark.parametrize(
         "table",
         [
-            "collections_simple",
-            "collections_complex",
+            "polygons_simple",
+            "polygons_complex",
         ],
     )
     def test_st_envelope(self, benchmark, eng, table):
@@ -286,6 +287,7 @@ class TestBenchFunctions(TestBenchBase):
         "table",
         [
             "polygons_simple",
+            "polygons_complex",
             "collections_complex",
         ],
     )
