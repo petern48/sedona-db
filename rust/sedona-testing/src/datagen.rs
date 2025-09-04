@@ -525,13 +525,10 @@ fn generate_random_geometry<R: rand::Rng>(
         GeometryTypeId::GeometryCollection => {
             Geometry::GeometryCollection(generate_random_geometrycollection(rng, options))
         }
-        _ => {
-            // For other geometry types, default to generating a point
-            let x_dist = Uniform::new(options.bounds.min().x, options.bounds.max().x);
-            let y_dist = Uniform::new(options.bounds.min().y, options.bounds.max().y);
-            let x = rng.sample(x_dist);
-            let y = rng.sample(y_dist);
-            Geometry::Point(Point::new(x, y))
+        GeometryTypeId::Geometry => {
+            let mut copy_options = options.clone();
+            copy_options.geom_type = pick_random_geometry_type(rng);
+            generate_random_geometry(rng, &copy_options)
         }
     }
 }
@@ -685,19 +682,23 @@ fn generate_random_children<R: Rng, T, F: Fn(&mut R, &RandomGeometryOptions) -> 
         // If GeometryCollection, pick a random geometry type
         // Don't support nested GeometryCollection for now to avoid too much recursion
         if options.geom_type == GeometryTypeId::GeometryCollection {
-            child_options.geom_type = [
-                GeometryTypeId::Point,
-                GeometryTypeId::LineString,
-                GeometryTypeId::Polygon,
-                GeometryTypeId::MultiPoint,
-                GeometryTypeId::MultiLineString,
-                GeometryTypeId::MultiPolygon,
-            ][rng.gen_range(0..6)];
+            child_options.geom_type = pick_random_geometry_type(rng);
         }
         children.push(func(rng, &child_options));
     }
 
     children
+}
+
+fn pick_random_geometry_type<R: Rng>(rng: &mut R) -> GeometryTypeId {
+    [
+        GeometryTypeId::Point,
+        GeometryTypeId::LineString,
+        GeometryTypeId::Polygon,
+        GeometryTypeId::MultiPoint,
+        GeometryTypeId::MultiLineString,
+        GeometryTypeId::MultiPolygon,
+    ][rng.gen_range(0..6)]
 }
 
 fn generate_random_circle<R: rand::Rng>(
