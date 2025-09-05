@@ -399,7 +399,7 @@ impl DisplayColumn {
             SedonaType::Wkb(Edges::Spherical, _) | SedonaType::WkbView(Edges::Spherical, _) => {
                 "geography".to_string()
             }
-            SedonaType::Arrow(data_type) => data_type.to_string().to_lowercase(),
+            _ => self.sedona_type.to_string().to_lowercase(),
         };
         if options.arrow_options.types_info() && !is_continuation {
             Cell::new(format!("{}\n{}", self.name, display_type)).set_delimiter('\0')
