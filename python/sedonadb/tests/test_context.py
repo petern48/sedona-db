@@ -37,13 +37,9 @@ def test_read_parquet(con, geoarrow_data):
 
 def test_read_parquet_local_glob(con, geoarrow_data):
     # The above test uses .glob() method, this test uses the raw string
-    # Check one file
     tab = con.read_parquet(
         geoarrow_data / "example/files/*_geo.parquet"
     ).to_arrow_table()
-    assert tab["geometry"].type.extension_name == "geoarrow.wkb"
-
-    # Check many files
     assert tab["geometry"].type.extension_name == "geoarrow.wkb"
     assert len(tab) == 244
 
