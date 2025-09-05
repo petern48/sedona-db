@@ -743,7 +743,7 @@ mod test {
             vec![
                 "+------+--------------+-----------+--------------+",
                 "| shrt |     long     |  numeric  |   geometry   |",
-                "| utf8 |     utf8     |   int32   |      wkb     |",
+                "| utf8 |     utf8     |   int32   |   geometry   |",
                 "+------+--------------+-----------+--------------+",
                 "| abcd | you see, ... | 123456789 | POINT(0 1)   |",
                 "| efgh | the eleph... | 987654321 | POLYGON((... |",
