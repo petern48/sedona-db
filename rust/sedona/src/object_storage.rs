@@ -125,33 +125,60 @@ pub async fn get_s3_object_store_builder(
     let bucket_name = get_bucket_name(url)?;
     let mut builder = AmazonS3Builder::from_env().with_bucket_name(bucket_name);
 
-    if let (Some(access_key_id), Some(secret_access_key)) = (access_key_id, secret_access_key) {
-        builder = builder
-            .with_access_key_id(access_key_id)
-            .with_secret_access_key(secret_access_key);
-
-        if let Some(session_token) = session_token {
-            builder = builder.with_token(session_token);
-        }
+    let config = aws_config::defaults(BehaviorVersion::latest()).no_credentials().load().await;
+    println!("config: {:?}", config);
+    println!("config.region(): {:?}", config.region());
+    if let Some(region) = config.region() {
+        builder = builder.with_region(region.to_string());
     } else {
-        let config = aws_config::defaults(BehaviorVersion::latest()).load().await;
-        if let Some(region) = config.region() {
-            builder = builder.with_region(region.to_string());
-        }
+        builder = builder.with_region("us-east-1");
+    }
 
-        let credentials = config
-            .credentials_provider()
-            .ok_or_else(|| {
-                DataFusionError::ObjectStore(Box::new(object_store::Error::Generic {
-                    store: "S3",
-                    source: "Failed to get S3 credentials from the environment".into(),
-                }))
-            })?
-            .clone();
-
+    if let Some(credentials) = config.credentials_provider() {
         let credentials = Arc::new(S3CredentialProvider { credentials });
         builder = builder.with_credentials(credentials);
     }
+    // unreachable!();
+    // let credentials = config
+    //     .credentials_provider()
+    //     .ok_or_else(|| {
+    //         DataFusionError::ObjectStore(Box::new(object_store::Error::Generic {
+    //             store: "S3",
+    //             source: "Failed to get S3 credentials from the environment modified".into(),
+    //         }))
+    //     })?
+    //     .clone();
+
+    // let credentials = Arc::new(S3CredentialProvider { credentials });
+    // builder = builder.with_credentials(credentials);
+
+    // if let (Some(access_key_id), Some(secret_access_key)) = (access_key_id, secret_access_key) {
+    //     builder = builder
+    //         .with_access_key_id(access_key_id)
+    //         .with_secret_access_key(secret_access_key);
+
+    //     if let Some(session_token) = session_token {
+    //         builder = builder.with_token(session_token);
+    //     }
+    // } else {
+    //     let config = aws_config::defaults(BehaviorVersion::latest()).load().await;
+    //     if let Some(region) = config.region() {
+    //         builder = builder.with_region(region.to_string());
+    //     }
+
+    //     let credentials = config
+    //         .credentials_provider()
+    //         .ok_or_else(|| {
+    //             DataFusionError::ObjectStore(Box::new(object_store::Error::Generic {
+    //                 store: "S3",
+    //                 source: "Failed to get S3 credentials from the environment".into(),
+    //             }))
+    //         })?
+    //         .clone();
+
+    //     let credentials = Arc::new(S3CredentialProvider { credentials });
+    //     builder = builder.with_credentials(credentials);
+    // }
 
     if let Some(region) = region {
         builder = builder.with_region(region);
@@ -460,6 +487,7 @@ pub(crate) async fn get_object_store(
     table_options: &TableOptions,
 ) -> Result<Arc<dyn ObjectStore>, DataFusionError> {
     let store: Arc<dyn ObjectStore> = match scheme {
+        
         #[cfg(feature = "aws")]
         "s3" => {
             let Some(options) = table_options.extensions.get::<AwsOptions>() else {
